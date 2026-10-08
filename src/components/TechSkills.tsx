@@ -48,22 +48,22 @@ export const TechSkills: React.FC = () => {
           </motion.h2>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex flex-wrap gap-3 mb-10">
+        {/* Category Tabs with smooth mobile horizontal scroll */}
+        <div className="flex overflow-x-auto pb-3 mb-8 gap-2.5 sm:gap-3 flex-nowrap sm:flex-wrap scrollbar-none max-w-full">
           {SKILL_CATEGORIES.map((cat, idx) => {
             const isActive = activeCategory === idx;
             return (
               <button
                 key={cat.title}
                 onClick={() => setActiveCategory(idx)}
-                className={`flex items-center gap-2.5 px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 shrink-0 ${
                   isActive
-                    ? 'bg-cyan-500/20 border border-cyan-400 text-white shadow-[0_0_20px_rgba(0,240,255,0.3)]'
-                    : 'bg-black/30 border border-white/10 text-slate-400 hover:text-white hover:bg-black/50'
+                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400 text-white shadow-[0_0_20px_rgba(0,240,255,0.3)]'
+                    : 'bg-black/40 border border-white/10 text-slate-400 hover:text-white hover:bg-black/60'
                 }`}
               >
                 {getCategoryIcon(cat.icon)}
-                <span>{cat.title}</span>
+                <span className="whitespace-nowrap">{cat.title}</span>
               </button>
             );
           })}

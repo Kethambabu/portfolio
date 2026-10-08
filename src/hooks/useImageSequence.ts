@@ -13,7 +13,9 @@ export function useImageSequence() {
 
     const getFrameUrl = (index: number) => {
       const frameNum = String(index + 1).padStart(3, '0');
-      return `./portfolio_img/ezgif-frame-${frameNum}.jpg`;
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+      return `${cleanBase}portfolio_img/ezgif-frame-${frameNum}.jpg`;
     };
 
     const loadFrame = (index: number) => {
@@ -103,7 +105,7 @@ export function useImageSequence() {
 
     if (!img || !img.complete || img.naturalWidth === 0) return;
 
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const containerWidth = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerWidth;
     const containerHeight = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight;
 
@@ -129,15 +131,15 @@ export function useImageSequence() {
 
     const centerShiftX = (cw - renderW) / 2;
 
-    // FOCAL POSITIONING MATH FOR 1080x1920 PORTRAIT:
-    // Face center in source frame is at ~28% of height (y = 537px).
-    // Target face placement on screen canvas is ~34% down from top.
+    // Responsive Focal positioning math:
+    // On mobile (< 768px), keep the portrait subject higher so it aligns beautifully with hero title
+    const isMobile = containerWidth < 768;
     const faceFocalYRatio = 0.28;
-    const canvasTargetYRatio = 0.34;
+    const canvasTargetYRatio = isMobile ? 0.28 : 0.34;
 
     let centerShiftY = (ch * canvasTargetYRatio) - (renderH * faceFocalYRatio);
 
-    // Clamp centerShiftY to ensure the image completely covers the canvas without top/bottom empty space
+    // Clamp centerShiftY to ensure the image completely covers the canvas without empty space
     const minY = ch - renderH;
     const maxY = 0;
     centerShiftY = Math.min(maxY, Math.max(minY, centerShiftY));

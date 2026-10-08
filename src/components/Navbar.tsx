@@ -131,22 +131,61 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="fixed inset-x-4 top-20 z-40 bg-[#0a0b12]/95 border border-white/10 backdrop-blur-2xl rounded-2xl p-5 shadow-2xl xl:hidden pointer-events-auto flex flex-col space-y-2"
+          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="fixed inset-x-4 top-20 z-40 bg-[#070811]/95 border border-cyan-500/30 backdrop-blur-3xl rounded-3xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(0,240,255,0.15)] xl:hidden pointer-events-auto flex flex-col space-y-3"
         >
-          {NAV_ITEMS.map((item) => (
+          <div className="flex items-center justify-between pb-3 border-b border-white/10 px-1">
+            <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider">Navigation Menu</span>
+            <span className="text-[10px] font-mono text-slate-400">SELECT SECTION</span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-1 max-h-[60vh] overflow-y-auto py-1 pr-1">
+            {NAV_ITEMS.map((item, idx) => {
+              const isActive = activeSection === item.href.substring(1);
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => scrollToSection(e, item.href)}
+                  className={`text-sm font-semibold py-2.5 px-4 rounded-2xl transition-all flex items-center justify-between ${
+                    isActive
+                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-white border border-cyan-500/40 shadow-[0_0_15px_rgba(0,240,255,0.2)]'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent'
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-cyan-400/70 font-bold">0{idx + 1}</span>
+                    <span>{item.label}</span>
+                  </span>
+                  <span className={`text-xs font-mono ${isActive ? 'text-cyan-400 font-bold' : 'text-slate-500'}`}>#</span>
+                </a>
+              );
+            })}
+          </div>
+
+          <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
             <a
-              key={item.label}
-              href={item.href}
-              onClick={(e) => scrollToSection(e, item.href)}
-              className="text-sm font-medium text-zinc-300 hover:text-cyan-400 py-2 px-3 rounded-xl hover:bg-white/5 transition-colors flex items-center justify-between"
+              href={PERSONAL_INFO.resumeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 px-4 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-semibold text-xs text-center flex items-center justify-center gap-2 hover:bg-cyan-500/25 transition-all"
             >
-              <span>{item.label}</span>
-              <span className="text-xs font-mono text-zinc-500">#</span>
+              <span>View Official Resume</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
             </a>
-          ))}
+            <a
+              href={PERSONAL_INFO.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-slate-200 font-semibold text-xs text-center flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+            >
+              <span>GitHub Profile</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+            </a>
+          </div>
         </motion.div>
       )}
     </header>

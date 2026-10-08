@@ -44,21 +44,21 @@ export const Projects: React.FC<ProjectsProps> = () => {
         </div>
 
         {/* Project Selection Tabs */}
-        <div className="flex flex-wrap gap-3 mb-10">
+        <div className="flex overflow-x-auto pb-3 mb-8 gap-2.5 sm:gap-3 flex-nowrap sm:flex-wrap max-w-full">
           {PROJECTS.map((proj) => {
             const isActive = activeProject.id === proj.id;
             return (
               <button
                 key={proj.id}
                 onClick={() => setActiveProject(proj)}
-                className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                className={`px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center gap-2 shrink-0 ${
                   isActive
-                    ? 'bg-cyan-500/20 border border-cyan-400 text-white shadow-[0_0_20px_rgba(0,240,255,0.3)]'
-                    : 'bg-black/30 border border-white/10 text-slate-400 hover:text-white hover:bg-black/50'
+                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400 text-white shadow-[0_0_20px_rgba(0,240,255,0.3)]'
+                    : 'bg-black/40 border border-white/10 text-slate-400 hover:text-white hover:bg-black/60'
                 }`}
               >
                 <span className="font-mono text-cyan-400 font-bold">{proj.code}</span>
-                <span>{proj.name}</span>
+                <span className="whitespace-nowrap">{proj.name}</span>
               </button>
             );
           })}
@@ -152,13 +152,13 @@ export const Projects: React.FC<ProjectsProps> = () => {
 
             {/* Links */}
             {(activeProject.githubUrl || activeProject.demoUrl) && (
-              <div className="flex items-center gap-4 pt-4 border-t border-white/10">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-4 border-t border-white/10">
                 {activeProject.githubUrl && (
                   <a
                     href={activeProject.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center gap-2 hover:scale-105"
+                    className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 hover:scale-105"
                   >
                     <FolderGit2 className="w-4 h-4" />
                     <span>Source Code</span>
@@ -169,7 +169,7 @@ export const Projects: React.FC<ProjectsProps> = () => {
                     href={activeProject.demoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-xs transition-all flex items-center gap-2 hover:scale-105"
+                    className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 hover:scale-105 shadow-[0_0_20px_rgba(0,240,255,0.3)]"
                   >
                     <span>Live Demo</span>
                     <ExternalLink className="w-4 h-4" />
