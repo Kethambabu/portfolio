@@ -18,61 +18,89 @@ export function useImageSequence() {
       return `${cleanBase}portfolio_img/ezgif-frame-${frameNum}.jpg`;
     };
 
-    const loadFrame = (index: number) => {
-      return new Promise<void>((resolve) => {
-        if (imagesRef.current[index]) {
-          resolve();
-          return;
-        }
+    const loadFrame = (index: number): Promise<HTMLImageElement | null> => {
+      if (imagesRef.current[index]) {
+        return Promise.resolve(imagesRef.current[index]);
+      }
+
+      return new Promise((resolve) => {
         const img = new Image();
         img.src = getFrameUrl(index);
 
         img.onload = () => {
           if (!isCancelled) {
-            imagesRef.current[index] = img;
-            count++;
-            setLoadedCount(count);
-            // Mark loaded as soon as first 25 frames are ready for instant display
-            if (count >= 25 && !isLoaded) {
-              setIsLoaded(true);
+            // Asynchronously decode image on background thread
+            if ('decode' in img) {
+              img.decode().catch(() => {}).finally(() => {
+                imagesRef.current[index] = img;
+                count++;
+                setLoadedCount(count);
+                if (count >= 20 && !isLoaded) {
+                  setIsLoaded(true);
+                }
+                resolve(img);
+              });
+            } else {
+              imagesRef.current[index] = img;
+              count++;
+              setLoadedCount(count);
+              if (count >= 20 && !isLoaded) {
+                setIsLoaded(true);
+              }
+              resolve(img);
             }
+          } else {
+            resolve(null);
           }
-          resolve();
         };
 
         img.onerror = () => {
           if (!isCancelled) {
             count++;
             setLoadedCount(count);
-            if (count >= 25 && !isLoaded) {
+            if (count >= 20 && !isLoaded) {
               setIsLoaded(true);
             }
           }
-          resolve();
+          resolve(null);
         };
       });
     };
 
+    const loadBatchConcurrently = async (indices: number[], limit = 15) => {
+      const queue = [...indices];
+      const workers = Array.from({ length: limit }, async () => {
+        while (queue.length > 0 && !isCancelled) {
+          const idx = queue.shift();
+          if (idx !== undefined) {
+            await loadFrame(idx);
+          }
+        }
+      });
+      await Promise.all(workers);
+    };
+
     const startPreloading = async () => {
-      // Step 1: Immediately load the first 25 frames for immediate top-of-page rendering
-      const initialBatch = Array.from({ length: 25 }, (_, i) => i);
-      await Promise.all(initialBatch.map(idx => loadFrame(idx)));
-
-      // Step 2: Sample load key frames across the whole timeline
-      const sampleIndices = Array.from({ length: 20 }, (_, i) => Math.floor((i * (TOTAL_FRAMES - 1)) / 20));
-      await Promise.all(sampleIndices.map(idx => loadFrame(idx)));
-
+      // Step 1: Immediately load initial top frames (0..25) for instant display
+      const topFrames = Array.from({ length: 25 }, (_, i) => i);
+      await loadBatchConcurrently(topFrames, 15);
       setIsLoaded(true);
 
-      // Step 3: Progressive background loading of all remaining frames
-      for (let i = 0; i < TOTAL_FRAMES; i += 5) {
-        if (isCancelled) break;
-        const chunk = [];
-        for (let j = 0; j < 5 && (i + j) < TOTAL_FRAMES; j++) {
-          chunk.push(loadFrame(i + j));
-        }
-        await Promise.all(chunk);
+      // Step 2: Load keyframes evenly distributed across the entire sequence
+      const keyframes: number[] = [];
+      for (let i = 25; i < TOTAL_FRAMES; i += 4) {
+        keyframes.push(i);
       }
+      await loadBatchConcurrently(keyframes, 15);
+
+      // Step 3: Rapidly fill in all remaining intermediate frames
+      const remaining: number[] = [];
+      for (let i = 0; i < TOTAL_FRAMES; i++) {
+        if (!imagesRef.current[i]) {
+          remaining.push(i);
+        }
+      }
+      await loadBatchConcurrently(remaining, 15);
     };
 
     startPreloading();
@@ -95,7 +123,7 @@ export function useImageSequence() {
 
     // Fallback: if target frame isn't loaded yet, pick nearest loaded image
     if (!img || !img.complete) {
-      for (let offset = 1; offset < 30; offset++) {
+      for (let offset = 1; offset < 40; offset++) {
         const prev = imagesRef.current[boundedIndex - offset];
         const next = imagesRef.current[boundedIndex + offset];
         if (prev && prev.complete) { img = prev; break; }
@@ -124,28 +152,24 @@ export function useImageSequence() {
     const cw = canvas.width;
     const ch = canvas.height;
 
-    // Scale calculation to cover canvas aspect ratio perfectly
     const scale = Math.max(cw / sw, ch / sh);
     const renderW = sw * scale;
     const renderH = sh * scale;
 
     const centerShiftX = (cw - renderW) / 2;
 
-    // Responsive Focal positioning math:
-    // On mobile (< 768px), keep the portrait subject higher so it aligns beautifully with hero title
     const isMobile = containerWidth < 768;
     const faceFocalYRatio = 0.28;
     const canvasTargetYRatio = isMobile ? 0.28 : 0.34;
 
     let centerShiftY = (ch * canvasTargetYRatio) - (renderH * faceFocalYRatio);
 
-    // Clamp centerShiftY to ensure the image completely covers the canvas without empty space
     const minY = ch - renderH;
     const maxY = 0;
     centerShiftY = Math.min(maxY, Math.max(minY, centerShiftY));
 
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingQuality = 'medium';
 
     ctx.drawImage(
       img,
@@ -164,4 +188,3 @@ export function useImageSequence() {
     drawFrame
   };
 }
-

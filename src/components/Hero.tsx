@@ -107,6 +107,11 @@ export const Hero: React.FC = () => {
       >
         <a
           href="#projects"
+          onClick={(e) => {
+            e.preventDefault();
+            const el = document.getElementById('projects');
+            if (el) window.lenis ? window.lenis.scrollTo(el, { duration: 1.2 }) : el.scrollIntoView({ behavior: 'smooth' });
+          }}
           className="px-7 py-3.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-xs sm:text-sm shadow-[0_0_30px_rgba(0,240,255,0.4)] hover:shadow-[0_0_45px_rgba(0,240,255,0.6)] hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 group"
         >
           <span>Explore Projects</span>
@@ -125,6 +130,11 @@ export const Hero: React.FC = () => {
 
         <a
           href="#contact"
+          onClick={(e) => {
+            e.preventDefault();
+            const el = document.getElementById('contact');
+            if (el) window.lenis ? window.lenis.scrollTo(el, { duration: 1.2 }) : el.scrollIntoView({ behavior: 'smooth' });
+          }}
           className="px-7 py-3.5 rounded-full bg-black/40 border border-white/15 text-slate-300 hover:text-white font-semibold text-xs sm:text-sm backdrop-blur-md hover:border-cyan-500/40 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105"
         >
           <Mail className="w-4 h-4 text-cyan-400" />

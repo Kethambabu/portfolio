@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { subscribeScrollProgress } from '../hooks/useScrollProgress';
 
 interface ImageSequenceCanvasProps {
-  progress: number; // 0 to 1
+  progress?: number;
   drawFrame: (canvas: HTMLCanvasElement | null, frameIndex: number) => void;
   totalFrames: number;
   className?: string;
@@ -16,21 +17,57 @@ export const ImageSequenceCanvas: React.FC<ImageSequenceCanvasProps> = ({
   overlayOpacity = 0.25
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const targetFrameRef = useRef<number>(0);
+  const currentFrameRef = useRef<number>(0);
+  const rafIdRef = useRef<number | null>(null);
+  const isDirtyRef = useRef<boolean>(true);
 
+  // Synchronize scroll progress (either from explicit prop or subscription)
   useEffect(() => {
-    const frameIndex = progress * (totalFrames - 1);
-    drawFrame(canvasRef.current, frameIndex);
-  }, [progress, drawFrame, totalFrames]);
+    if (typeof progress === 'number') {
+      targetFrameRef.current = progress * (totalFrames - 1);
+      isDirtyRef.current = true;
+      return;
+    }
 
+    const unsubscribe = subscribeScrollProgress((p) => {
+      targetFrameRef.current = p * (totalFrames - 1);
+      isDirtyRef.current = true;
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [progress, totalFrames]);
+
+  // Buttery-smooth hardware accelerated frame render loop
   useEffect(() => {
-    const handleResize = () => {
-      const frameIndex = progress * (totalFrames - 1);
-      drawFrame(canvasRef.current, frameIndex);
+    const render = () => {
+      const diff = targetFrameRef.current - currentFrameRef.current;
+      if (Math.abs(diff) > 0.001 || isDirtyRef.current) {
+        // Smooth sub-frame linear interpolation for fluid motion
+        currentFrameRef.current += diff * 0.22;
+        drawFrame(canvasRef.current, currentFrameRef.current);
+        isDirtyRef.current = false;
+      }
+
+      rafIdRef.current = requestAnimationFrame(render);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [progress, drawFrame, totalFrames]);
+    rafIdRef.current = requestAnimationFrame(render);
+
+    const handleResize = () => {
+      isDirtyRef.current = true;
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
+
+    return () => {
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [drawFrame]);
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
@@ -48,5 +85,3 @@ export const ImageSequenceCanvas: React.FC<ImageSequenceCanvasProps> = ({
     </div>
   );
 };
-
-

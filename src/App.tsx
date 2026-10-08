@@ -18,7 +18,7 @@ import { ImageSequenceCanvas } from './components/ImageSequenceCanvas';
 
 export const App: React.FC = () => {
   const { progressPercent, isLoaded, drawFrame, totalFrames } = useImageSequence();
-  const scrollProgress = useScrollProgress();
+  useScrollProgress();
 
   return (
     <div className="relative min-h-screen bg-[#050508] text-white selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
@@ -31,7 +31,6 @@ export const App: React.FC = () => {
       {/* GLOBAL PERSISTENT CINEMATIC STORYTELLING CANVAS BACKDROP */}
       <div className="fixed inset-0 z-0 pointer-events-none w-full h-screen overflow-hidden">
         <ImageSequenceCanvas
-          progress={scrollProgress}
           drawFrame={drawFrame}
           totalFrames={totalFrames}
           overlayOpacity={0.25}
